@@ -8,6 +8,8 @@ use App\Models\Order;
 use App\Models\Product;
 use Filament\Forms;
 use Filament\Forms\Components\Group;
+use Filament\Forms\Components\Hidden;
+use Filament\Forms\Components\Placeholder;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Section;
 use Filament\Forms\Components\Select;
@@ -19,9 +21,13 @@ use Filament\Forms\Get;
 use Filament\Forms\Set;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Tables\Actions\ActionGroup;
+use Filament\Tables\Columns\SelectColumn;
+use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Support\Number;
 
 class OrderResource extends Resource
 {
@@ -43,7 +49,14 @@ class OrderResource extends Resource
                             ->required(),
                         Select::make('payment_method')
                             ->options([
-                                'stripe' => 'Stripe',
+                                'dana' => 'DANA',
+                                'gopay' => 'GoPay',
+                                'ovo' => 'OVO',
+                                'linkaja' => 'LinkAja',
+                                'credit_card' => 'Credit Card',
+                                'bank_transfer' => 'Bank Transfer',
+                                'paypal' => 'PayPal',
+                                'bitcoin' => 'Bitcoin',
                                 'cod' => 'Cash on Delivery',
                             ])
                             ->required(),
@@ -134,7 +147,22 @@ class OrderResource extends Resource
                                     ->required()
                                     ->dehydrated()
                                     ->columnSpan(3),
-                            ])->columns(12)
+                            ])->columns(12),
+                        Placeholder::make('grand_total_placeholder')
+                            ->label('Grand Total')
+                            ->content(function (Get $get, Set $set) {
+                                $total = 0;
+                                if (!$repeaters = $get('items')) {
+                                    return $total;
+                                }
+                                foreach($repeaters as $key => $repeater){
+                                    $total += $get("items.{$key}.total_amount");
+                                }
+                                $set('grand_total', $total);
+                                return Number::currency($total, 'IDR');
+                            }),
+                        Hidden::make('grand_total')
+                            ->default(0),
                     ]),
                 ])->columnSpanFull(),
             ]);
@@ -144,13 +172,55 @@ class OrderResource extends Resource
     {
         return $table
             ->columns([
-                //
+                TextColumn::make('user.name')
+                    ->label('Customer')
+                    ->sortable()
+                    ->searchable(),
+                TextColumn::make('grand_total')
+                    ->label('Grand Total')
+                    ->sortable()
+                    ->numeric()
+                    ->money('IDR'),
+                TextColumn::make('payment_method')
+                    ->searchable()
+                    ->sortable(),
+                TextColumn::make('payment_status')
+                    ->searchable()
+                    ->sortable(),
+                TextColumn::make('currency')
+                    ->sortable()
+                    ->searchable(),
+                TextColumn::make('shipping_method')
+                    ->sortable()
+                    ->searchable(),
+                SelectColumn::make('status')
+                    ->options([
+                        'new' => 'New',
+                        'processing' => 'Processing',
+                        'shipped' => 'Shipped',
+                        'delivered' => 'Delivered',
+                        'canceled' => 'Canceled',
+                    ])
+                    ->searchable()
+                    ->sortable(),
+                TextColumn::make('created_at')
+                    ->dateTime()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+                TextColumn::make('updated_at')
+                    ->dateTime()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true)
             ])
             ->filters([
                 //
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
+                ActionGroup::make([
+                    Tables\Actions\ViewAction::make(),
+                    Tables\Actions\EditAction::make(),
+                    Tables\Actions\DeleteAction::make(),
+                ]),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -164,6 +234,14 @@ class OrderResource extends Resource
         return [
             //
         ];
+    }
+
+    public static function getNavigationBadge(): ?string {
+        return static::getModel()::count();
+    }
+
+    public static function getNavigationBadgeColor(): string|array|null {
+        return static::getModel()::count() > 0 ? 'success' : 'danger';
     }
 
     public static function getPages(): array
