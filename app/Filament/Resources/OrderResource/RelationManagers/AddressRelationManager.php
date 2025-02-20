@@ -49,6 +49,11 @@ class AddressRelationManager extends RelationManager
         return $table
             ->recordTitleAttribute('street_address')
             ->columns([
+                Tables\Columns\TextColumn::make('fullname')->label('Full Name'),
+                Tables\Columns\TextColumn::make('phone'),
+                Tables\Columns\TextColumn::make('city'),
+                Tables\Columns\TextColumn::make('state'),
+                Tables\Columns\TextColumn::make('zip_code'),
                 Tables\Columns\TextColumn::make('street_address'),
             ])
             ->filters([
