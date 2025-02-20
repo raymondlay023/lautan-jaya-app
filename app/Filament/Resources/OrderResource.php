@@ -232,7 +232,7 @@ class OrderResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            RelationManagers\AddressRelationManager::class,
         ];
     }
 
@@ -241,7 +241,7 @@ class OrderResource extends Resource
     }
 
     public static function getNavigationBadgeColor(): string|array|null {
-        return static::getModel()::count() > 0 ? 'success' : 'danger';
+        return static::getModel()::count() > 10 ? 'success' : 'danger';
     }
 
     public static function getPages(): array
