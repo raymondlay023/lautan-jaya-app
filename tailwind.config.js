@@ -9,7 +9,7 @@ export default {
         './resources/views/**/*.blade.php',
         'node_modules/preline/dist/*.js',
     ],
-
+    darkMode: 'class',
     theme: {
         extend: {
             fontFamily: {
