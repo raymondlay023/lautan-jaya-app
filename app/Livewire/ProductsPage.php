@@ -25,7 +25,7 @@ class ProductsPage extends Component
     #[Url]
     public $on_sale;
 
-    public $price_range = 300000;
+    public $price_range = 0;
 
     public function render()
     {
