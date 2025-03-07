@@ -31,6 +31,15 @@ class CheckoutPage extends Component
             'zip_code' => 'required',
             'payment_method' => 'required',
         ]);
+
+        $cart_items = CartManagement::getCartItemsFromCookie();
+        $line_items = [];
+        foreach ($cart_items as $item) {
+            $line_items[] = [
+                'currency' => 'idr',
+                'unit_amount'
+            ];
+        }
     }
 
     public function render()
