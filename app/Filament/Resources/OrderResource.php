@@ -60,6 +60,8 @@ class OrderResource extends Resource
                                 'paypal' => 'PayPal',
                                 'bitcoin' => 'Bitcoin',
                                 'cod' => 'Cash on Delivery',
+                                'stripe' => 'Stripe',
+                                'midtrans' => 'Midtrans'
                             ])
                             ->required(),
                         Select::make('payment_status')
